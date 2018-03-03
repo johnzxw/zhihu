@@ -8,20 +8,65 @@
 <body>
 
 <div id="header">
-    <a href="/" title="知乎日报">
-        <img src="/static/zhihu_logo.png" class="main-wrap"/>
+    <a href="/" title="知乎日报" style="float:left">
+        <img src="/static/zhihu_logo.png" class="main-wrap">
     </a>
+    <div class="float:right" style="margin-top: 15px;padding-right: 30px;">
+        选择自己喜欢看的日期：
+        <a href="javascript:;" style="width: 100px;height: auto;margin-right: 0;" id="selectDate">2018-03-03</a>
+    </div>
 </div>
 
 <div id="content">
+    <div id="content-header" style="display: none"></div>
     <div id="content-bottom" style="display: none;"></div>
 </div>
 <script src="http://cdn.bootcss.com/jquery/1.12.3/jquery.min.js"></script>
 <script type="text/javascript" src="/static/layer.js"></script>
+<script type="text/javascript" src="/static/laydate.js"></script>
 <script type="text/javascript">
     window.isLoaded = false;
     window.QueryStamp = Math.round(new Date().getTime() / 1000);
     window.QueryDate = timestampToTime(window.QueryStamp);
+    window.HeaderDate = "";
+    window.HeaderWeekName = "";
+    window.WeekName = new Array('星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六');
+    $("#selectDate").html(timestampToTimeStr(window.QueryStamp));
+
+    $(window).scroll(function () {
+        var scrollTop = $(this).scrollTop();
+        var scrollHeight = $(document).height();
+        var windowHeight = $(this).height();
+        if (scrollTop + windowHeight >= scrollHeight - 500) {
+            appendData(getPrefixDayDate());
+        }
+    });
+
+    //假设 selectDate 是一个按钮
+    lay('#selectDate').on('click', function (e) {
+        laydate.render({
+            elem: '#selectDate'
+            , show: true //直接显示
+            , closeStop: '#selectDate' //这里代表的意思是：点击 selectDate 所在元素阻止关闭事件冒泡。如果不设定，则无法弹出控件
+            , type: 'date'
+            , format: 'yyyy-MM-dd'
+            , trigger: 'click'
+            , calendar: true
+            , done: function (value, date, endDate) {
+                var dateFor = new Date(value);
+                Y = dateFor.getFullYear();
+                M = (dateFor.getMonth() + 1 < 10 ? '0' + (dateFor.getMonth() + 1) : dateFor.getMonth() + 1);
+                D = (dateFor.getDate() < 10 ? '0' + (dateFor.getDate()) : dateFor.getDate());
+                dateStr = Y + "" + M + "" + D;
+
+                $('html,body').animate({scrollTop: '0px'}, 800);
+
+                window.HeaderDate = dateStr;
+                window.HeaderWeekName = window.WeekName[dateFor.getDay()];
+                appendDataToHeader(window.HeaderDate);
+            }
+        });
+    });
 
     window.onload = function () {
         //load 5day data
@@ -41,33 +86,75 @@
         });
     }
 
-    $(window).scroll(function () {
-        var scrollTop = $(this).scrollTop();
-        var scrollHeight = $(document).height();
-        var windowHeight = $(this).height();
-        if (scrollTop + windowHeight >= scrollHeight - 500) {
-            appendData(getPrefixDayDate());
-        }
-    });
-
     function timestampToTime(timestamp) {
         var date = new Date(timestamp * 1000);
         Y = date.getFullYear();
         M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
         D = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate());
-        return Y + M + D;
+        return Y + "" + M + "" + D;
+    }
+
+    function timestampToTimeStr(timestamp) {
+        var date = new Date(timestamp * 1000);
+        Y = date.getFullYear();
+        M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
+        D = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate());
+        return Y + "-" + M + "-" + D;
+
     }
 
     function timestampToWeek(timestamp) {
         var date = new Date(timestamp * 1000);
-        var today = new Array('星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六');
-        return today[date.getDay()]
+        return window.WeekName[date.getDay()]
     }
 
     function getPrefixDayDate() {
         window.QueryStamp = window.QueryStamp - 86400;
         window.QueryDate = timestampToTime(window.QueryStamp);
         return window.QueryDate;
+    }
+
+    function appendDataToHeader() {
+        if (window.isLoaded) {
+            return "";
+        }
+        window.isLoaded = true;
+
+        data = {
+            date: window.HeaderDate
+        };
+        $.ajax({
+            type: 'POST',
+            url: '/getdata',
+            dataType: 'JSON',
+            async: false,
+            cache: false,
+            data: data,
+            success: function (msg) {
+                var requestData = "";
+                for (var i = 0; i < msg.length; i++) {
+                    requestData +=
+                            "            <div class=\"item\">\n" +
+                            "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "')\">\n                    " +
+                            "                    <img src='" + msg[i].image + "' alt=''/>\n" +
+                            "                    <span class='title'>" + msg[i].title + "</span>\n" +
+                            "                </a>\n" +
+                            "            </div>\n";
+                }
+                var htmlContent = "<div class=\"post\">\n" +
+                        "        <div class=\"post-date\">\n" +
+                        "            <span style='display:none' class='dateString'>date</span>\n" +
+                        "            <span class=\"post-date-week\">" + window.HeaderWeekName + "</span>\n" +
+                        "            <span class=\"post-date-day\">" + window.HeaderDate + "</span>\n" +
+                        "        </div>\n" +
+                        "        <div class=\"post-body\">\n" + requestData +
+                        "        </div>\n" +
+                        "    </div>";
+                $("#content-header").after(htmlContent);
+            }
+        });
+
+        window.isLoaded = false;
     }
 
     /**

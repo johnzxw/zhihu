@@ -32,6 +32,7 @@ var (
 	apiTodayUrl        string
 	dbFileName         string
 	tableName          string
+	SqlConnect         *sql.DB
 )
 
 type ApiDataStruct struct {
@@ -79,6 +80,12 @@ func init() {
 	apiTodayUrl = "http://news.at.zhihu.com/api/1.2/news/latest"
 	dbFileName = CurrentPath + "/zhihudb.db"
 	tableName = "zhihudata"
+
+	db, err := sql.Open("sqlite3", dbFileName)
+	if err != nil {
+		panic(err)
+	}
+	SqlConnect = db
 
 	//executeSql()
 }
@@ -159,12 +166,9 @@ func executeSql() {
 		Title TEXT NOT NULL,
 		Date CHAR(8) NOT NULL
 	)`
-	db, err := sql.Open("sqlite3", dbFileName)
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-	rows, err := db.Query(sqlStr)
+
+	//defer SqlConnect.Close()
+	rows, err := SqlConnect.Query(sqlStr)
 	fmt.Println(rows)
 	fmt.Println(err)
 }
@@ -203,13 +207,9 @@ func getDataByDate(date string) []ContentDataStruct {
  * 保存数据到sqlite
  */
 func saveDataToDb(data []ContentDataStruct, date string) bool {
-	db, err := sql.Open("sqlite3", dbFileName)
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
+	//defer SqlConnect.Close()
 	for _, data := range data {
-		stmt, err := db.Prepare("INSERT INTO " + tableName + " (Title,Url,Image,Shareurl,Thumbnail,Gaprefix,Id,Date) values (?,?,?,?,?,?,?,?)")
+		stmt, err := SqlConnect.Prepare("INSERT INTO " + tableName + " (Title,Url,Image,Shareurl,Thumbnail,Gaprefix,Id,Date) values (?,?,?,?,?,?,?,?)")
 		if err != nil {
 			panic(err)
 		}
@@ -224,15 +224,12 @@ func saveDataToDb(data []ContentDataStruct, date string) bool {
  */
 func getDataForDb(date string) []ContentDataStruct {
 	returnData := []ContentDataStruct{}
-	db, err := sql.Open("sqlite3", dbFileName)
+	rows, err := SqlConnect.Query("SELECT Title,Url,Image,Shareurl,Thumbnail,Gaprefix,Id FROM "+tableName+" where Date = ?",
+		date)
 	if err != nil {
 		panic(err)
 	}
-	rows, err := db.Query("SELECT Title,Url,Image,Shareurl,Thumbnail,Gaprefix,Id FROM "+tableName+" where Date = ?", date)
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
+	//defer SqlConnect.Close()
 	for rows.Next() {
 		var Title string
 		var Url string
