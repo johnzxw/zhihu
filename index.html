@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>知乎日报-allen</title>
+    <link type="text/css" rel="stylesheet" href="/static/base.css"/>
+    <meta name="referrer" content="never">
+</head>
+<body>
+
+<div id="header">
+    <a href="/" title="知乎日报">
+        <img src="/static/zhihu_logo.png" class="main-wrap"/>
+    </a>
+</div>
+
+<div id="content">
+    <div id="content-bottom" style="display: none;"></div>
+</div>
+<script src="http://cdn.bootcss.com/jquery/1.12.3/jquery.min.js"></script>
+<script type="text/javascript" src="/static/layer.js"></script>
+<script type="text/javascript">
+    window.isLoaded = false;
+    window.QueryStamp = Math.round(new Date().getTime() / 1000);
+    window.QueryDate = timestampToTime(window.QueryStamp);
+
+    window.onload = function () {
+        //load 5day data
+        appendData(window.QueryDate);
+        for (var i = 0; i < 4; i++) {
+            appendData(getPrefixDayDate());
+        }
+    };
+
+    function layeropen(url) {
+        layer.open({
+            type: 2,
+            area: ['750px', '850px'],
+            fixed: false, //不固定
+            maxmin: true,
+            content: url
+        });
+    }
+
+    $(window).scroll(function () {
+        var scrollTop = $(this).scrollTop();
+        var scrollHeight = $(document).height();
+        var windowHeight = $(this).height();
+        if (scrollTop + windowHeight >= scrollHeight - 500) {
+            appendData(getPrefixDayDate());
+        }
+    });
+
+    function timestampToTime(timestamp) {
+        var date = new Date(timestamp * 1000);
+        Y = date.getFullYear();
+        M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
+        D = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate());
+        return Y + M + D;
+    }
+
+    function timestampToWeek(timestamp) {
+        var date = new Date(timestamp * 1000);
+        var today = new Array('星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六');
+        return today[date.getDay()]
+    }
+
+    function getPrefixDayDate() {
+        window.QueryStamp = window.QueryStamp - 86400;
+        window.QueryDate = timestampToTime(window.QueryStamp);
+        return window.QueryDate;
+    }
+
+    /**
+     * load data
+     * @returns {string}
+     */
+    function appendData() {
+        if (window.isLoaded) {
+            return "";
+        }
+        window.isLoaded = true;
+
+        data = {
+            date: window.QueryDate
+        };
+        $.ajax({
+            type: 'POST',
+            url: '/getdata',
+            dataType: 'JSON',
+            async: false,
+            cache: false,
+            data: data,
+            success: function (msg) {
+                var requestData = "";
+                for (var i = 0; i < msg.length; i++) {
+                    requestData +=
+                            "            <div class=\"item\">\n" +
+                            "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "')\">\n                    " +
+                            "                    <img src='" + msg[i].thumbnail + "' alt=''/>\n" +
+                            "                    <span class='title'>" + msg[i].title + "</span>\n" +
+                            "                </a>\n" +
+                            "            </div>\n";
+                }
+                var htmlContent = "<div class=\"post\">\n" +
+                        "        <div class=\"post-date\">\n" +
+                        "            <span style='display:none' class='dateString'>date</span>\n" +
+                        "            <span class=\"post-date-week\">" + timestampToWeek(window.QueryStamp) + "</span>\n" +
+                        "            <span class=\"post-date-day\">" + window.QueryDate + "</span>\n" +
+                        "        </div>\n" +
+                        "        <div class=\"post-body\">\n" + requestData +
+                        "        </div>\n" +
+                        "    </div>";
+                $("#content-bottom").before(htmlContent);
+            }
+        });
+
+        window.isLoaded = false;
+    }
+</script>
+</body>
+</html>
