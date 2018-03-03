@@ -197,6 +197,13 @@ func getDataByDate(date string) []ContentDataStruct {
 				fmt.Println("json 解析失败！ url：")
 			}
 			zhihuData = resultArray.News
+			//对url进行处理
+			for i := 0; i < len(zhihuData); i++ {
+				zhihuData[i].Thumbnail = strings.Replace(zhihuData[i].Thumbnail, "http:", "", 1)
+				zhihuData[i].Shareurl = strings.Replace(zhihuData[i].Shareurl, "http:", "", 1)
+				zhihuData[i].Image = strings.Replace(zhihuData[i].Image, "http:", "", 1)
+				zhihuData[i].Url = strings.Replace(zhihuData[i].Url, "http:", "", 1)
+			}
 			saveDataToDb(zhihuData, date)
 		}
 	}
