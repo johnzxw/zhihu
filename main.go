@@ -70,7 +70,7 @@ func init() {
 
 	requestLogFileName = "/request.log"
 	logFileName = "/go_debug_log.log"
-	listerAddr = ":1101"
+	listerAddr = "127.0.0.1:1101"
 	gzipLevel = 5
 	readTimeout = 10
 	writeTimeout = 10
