@@ -76,12 +76,13 @@
         }
     };
 
-    function layeropen(url) {
+    function layeropen(url,title) {
         layer.open({
             type: 2,
-            area: ['750px', '850px'],
-            fixed: false, //不固定
+            area: ['750px', '90%'],
+            fixed: false, //不固定、
             maxmin: true,
+            title:title,
             content: url
         });
     }
@@ -135,7 +136,7 @@
                 for (var i = 0; i < msg.length; i++) {
                     requestData +=
                             "            <div class=\"item\">\n" +
-                            "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "')\">\n                    " +
+                            "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "','"+msg[i].title+"')\">\n                    " +
                             "                    <img src='" + msg[i].image + "' alt=''/>\n" +
                             "                    <span class='title'>" + msg[i].title + "</span>\n" +
                             "                </a>\n" +
@@ -182,7 +183,7 @@
                 for (var i = 0; i < msg.length; i++) {
                     requestData +=
                             "            <div class=\"item\">\n" +
-                            "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "')\">\n                    " +
+                            "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "','"+msg[i].title+"')\">\n                    " +
                             "                    <img src='" + msg[i].image + "' alt=''/>\n" +
                             "                    <span class='title'>" + msg[i].title + "</span>\n" +
                             "                </a>\n" +
