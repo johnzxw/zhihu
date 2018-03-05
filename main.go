@@ -27,6 +27,7 @@ var (
 	readTimeout        time.Duration
 	writeTimeout       time.Duration
 	hideBanner         bool
+	hidePort           bool
 	debug              bool
 	apiUrl             string
 	apiTodayUrl        string
@@ -75,6 +76,7 @@ func init() {
 	readTimeout = 10
 	writeTimeout = 10
 	hideBanner = true
+	hidePort = true
 	debug = true
 	apiUrl = "http://news.at.zhihu.com/api/1.2/news/before/"
 	apiTodayUrl = "http://news.at.zhihu.com/api/1.2/news/latest"
@@ -95,6 +97,7 @@ func main() {
 	}
 	e := echo.New()
 	e.HideBanner = hideBanner
+	e.HidePort = hidePort
 	e.Debug = debug
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: gzipLevel,
