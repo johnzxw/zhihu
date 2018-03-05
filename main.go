@@ -39,7 +39,7 @@ var (
 type ApiDataStruct struct {
 	Date        string              `json:"date"`
 	News        []ContentDataStruct `json:"news"`
-	displaydate string              `json:"display_date"`
+	Displaydate string              `json:"display_date"`
 }
 
 type ContentDataStruct struct {
@@ -156,27 +156,6 @@ func DefaultIndex(c echo.Context) error {
 }
 
 /**
- *create table
- */
-func executeSql() {
-	sqlStr := `CREATE TABLE IF NOT EXISTS zhihudata(
-		Id INT NOT NULL,
-		Gaprefix VARCHAR(200) NOT NULL,
-		Thumbnail VARCHAR(200) NOT NULL,
-		Shareurl VARCHAR(200) NOT NULL,
-		Image VARCHAR(200) NOT NULL,
-		Url VARCHAR(200) NOT NULL,
-		Title TEXT NOT NULL,
-		Date CHAR(8) NOT NULL
-	)`
-
-	//defer SqlConnect.Close()
-	rows, err := SqlConnect.Query(sqlStr)
-	fmt.Println(rows)
-	fmt.Println(err)
-}
-
-/**
  *根据日期获取数据
  */
 func getDataByDate(date string) []ContentDataStruct {
@@ -233,7 +212,7 @@ func saveDataToDb(data []ContentDataStruct, date string) bool {
  *走库获取数据
  */
 func getDataForDb(date string) []ContentDataStruct {
-	returnData := []ContentDataStruct{}
+	var returnData []ContentDataStruct
 	rows, err := SqlConnect.Query("SELECT Title,Url,Image,Shareurl,Thumbnail,Gaprefix,Id FROM "+tableName+" where Date = ?",
 		date)
 	if err != nil {
