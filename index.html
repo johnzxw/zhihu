@@ -3,6 +3,7 @@
 <head>
     <title>知乎日报-allen</title>
     <link type="text/css" rel="stylesheet" href="/static/base.css"/>
+    <link type="text/css" rel="stylesheet" href="/static/nprogress.css"/>
     <meta name="referrer" content="never">
 </head>
 <body>
@@ -24,7 +25,29 @@
 <script type="text/javascript" src="/static/jquery.min.js"></script>
 <script type="text/javascript" src="/static/layer.js"></script>
 <script type="text/javascript" src="/static/laydate.js"></script>
+<script type="text/javascript" src="/static/nprogress.js"></script>
 <script type="text/javascript">
+    NProgress.configure({
+        //设置开始时最低百分比，默认是0.08。
+        minimum: 0.1,
+        //改变进度条的HTML结构。为了保证进度条正常工作，需要一个包含role='bar' 属性的元素
+        template: '<div class="bar" role="bar"><div class="peg"></div></div><div class="spinner" role="spinner"><div class="spinner-icon"></div></div>',
+        // ease可传递CSS3缓冲动画字符串（如ease、linear、ease-in、ease-out、ease-in-out、cubic-bezier）。speed为动画速度（默认200，单位ms）
+        easing: 'ease',
+        speed: 500,
+        //是否显示进度条，默认：true
+        trickle: true,
+        //设置每次进度条步进速度（ms）
+        trickleSpeed: 200,
+        // 是否显示环形进度动画，默认true
+        showSpinner: false,
+        //指定改变的父容器
+        parent: 'body',
+        positionUsing: '',
+        barSelector: '[role="bar"]',
+        spinnerSelector: '[role="spinner"]'
+    });
+    NProgress.start();
     window.isLoaded = false;
     window.QueryStamp = Math.round(new Date().getTime() / 1000);
     window.QueryDate = timestampToTime(window.QueryStamp);
@@ -59,11 +82,12 @@
                 D = (dateFor.getDate() < 10 ? '0' + (dateFor.getDate()) : dateFor.getDate());
                 dateStr = Y + "" + M + "" + D;
 
-                $('html,body').animate({scrollTop: '0px'}, 800);
-
                 window.HeaderDate = dateStr;
                 window.HeaderWeekName = window.WeekName[dateFor.getDay()];
                 appendDataToHeader(window.HeaderDate);
+                if (!isHeadered()) {
+                    setTimeout("$('html,body').animate({scrollTop: '0px'}, 800)", 500);
+                }
             }
         });
     });
@@ -74,15 +98,23 @@
         for (var i = 0; i < 4; i++) {
             appendData(getPrefixDayDate());
         }
+        NProgress.done();
     };
 
-    function layeropen(url,title) {
+    function isHeadered() {
+        if ($(document).scrollTop() <= 0) {
+            return true
+        }
+        return false;
+    }
+
+    function layeropen(url, title) {
         layer.open({
             type: 2,
             area: ['750px', '90%'],
             fixed: false, //不固定、
             maxmin: true,
-            title:title,
+            title: title,
             content: url
         });
     }
@@ -120,7 +152,7 @@
             return "";
         }
         window.isLoaded = true;
-
+        NProgress.start();
         data = {
             date: window.HeaderDate
         };
@@ -136,7 +168,7 @@
                 for (var i = 0; i < msg.length; i++) {
                     requestData +=
                             "            <div class=\"item\">\n" +
-                            "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "','"+msg[i].title+"')\">\n                    " +
+                            "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "','" + msg[i].title + "')\">\n                    " +
                             "                    <img src='" + msg[i].image + "' alt=''/>\n" +
                             "                    <span class='title'>" + msg[i].title + "</span>\n" +
                             "                </a>\n" +
@@ -154,7 +186,7 @@
                 $("#content-header").after(htmlContent);
             }
         });
-
+        NProgress.done();
         window.isLoaded = false;
     }
 
@@ -167,7 +199,7 @@
             return "";
         }
         window.isLoaded = true;
-
+        NProgress.start();
         data = {
             date: window.QueryDate
         };
@@ -183,7 +215,7 @@
                 for (var i = 0; i < msg.length; i++) {
                     requestData +=
                             "            <div class=\"item\">\n" +
-                            "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "','"+msg[i].title+"')\">\n                    " +
+                            "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "','" + msg[i].title + "')\">\n                    " +
                             "                    <img src='" + msg[i].image + "' alt=''/>\n" +
                             "                    <span class='title'>" + msg[i].title + "</span>\n" +
                             "                </a>\n" +
@@ -202,6 +234,7 @@
             }
         });
 
+        NProgress.done();
         window.isLoaded = false;
     }
 </script>
