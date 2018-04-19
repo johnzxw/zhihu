@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-#¿ªÊ¼±àÒëgo³ÌĞò -s È¥µô·ûºÅ±í -w È¥µôDWARFµ÷ÊÔĞÅÏ¢
+#å¼€å§‹ç¼–è¯‘goç¨‹åº -s å»æ‰ç¬¦å·è¡¨ -w å»æ‰DWARFè°ƒè¯•ä¿¡æ¯
 go build  -o zhihu -race -ldflags "-s -w"  main.go
 
-#¿ªÆôupxÑ¹Ëõ
+#å¼€å¯upxå‹ç¼©
 upx -9 zhihu
