@@ -62,7 +62,7 @@
         spinnerSelector: '[role="spinner"]'
     });
     NProgress.start();
-    window.divHeight = $(".item").height();
+    window.divHeight = 0;
     window.isLoaded = false;
     window.QueryStamp = Math.round(new Date().getTime() / 1000);
     window.QueryDate = timestampToTime(window.QueryStamp);
@@ -114,6 +114,7 @@
             appendData(getPrefixDayDate());
         }
         NProgress.done();
+        window.divHeight = $(".item").height();
     };
 
     function isHeadered() {
@@ -126,7 +127,7 @@
     function layeropen(url, title) {
         layer.open({
             type: 2,
-            area: ['750px', '90%'],
+            area: ['90%', '90%'],
             fixed: false, //不固定、
             maxmin: true,
             title: title,
