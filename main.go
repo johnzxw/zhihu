@@ -149,7 +149,7 @@ func main() {
  */
 func DefaultIndex(c echo.Context) error {
 	date := c.FormValue("date")
-	if c.Request().Method == "POST" && len(date) > 0 {
+	if isPost(c.Request().Method) && len(date) > 0 {
 		return c.JSON(http.StatusOK, getDataByDate(date))
 	}
 	return c.Render(http.StatusOK, "index.html", map[string]string{})
@@ -266,6 +266,17 @@ func httpGet(url string) string {
 	} else {
 		return ""
 	}
+}
+
+/**
+ *判断提交方法是否是post
+ */
+func isPost(method string) bool {
+	result := false
+	if method == http.MethodPost {
+		result = true
+	}
+	return result
 }
 
 /**
