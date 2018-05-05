@@ -1,18 +1,18 @@
 # zhihu
 
-golang  echo ÊµÏÖweb°æ ÖªºõÈÕ±¨
+golang  echo å®ç°webç‰ˆ çŸ¥ä¹æ—¥æŠ¥
 
 
-°²×°£º go get github.com/johnzxw/zhihu
+å®‰è£…ï¼š go get github.com/johnzxw/zhihu
 
-±àÒëÃüÁî£º sh build.sh
+ç¼–è¯‘å‘½ä»¤ï¼š sh build.sh
 
-Æô¶¯ÃüÁî£º./zhihu (supervisor Æô¶¯)
+å¯åŠ¨å‘½ä»¤ï¼š./zhihu (supervisor å¯åŠ¨)
 
-Êı¾İ¿â£º sqlite3(zhihudb.db)
+æ•°æ®åº“ï¼š sqlite3(zhihudb.db)
 
 
-Ê×Ò³µØÖ·£º ****:1101/
+é¦–é¡µåœ°å€ï¼š ****:1101/
 
-»ñÈ¡Ã¿ÌìÈÕ±¨£º ****:1101/getdata £¨ÇëÇó:post£¬²ÎÊı:date ,20180303£©
+è·å–æ¯å¤©æ—¥æŠ¥ï¼š ****:1101/getdata ï¼ˆè¯·æ±‚:postï¼Œå‚æ•°:date ,20180303ï¼‰
 
