@@ -203,7 +203,10 @@ func saveDataToDb(data []ContentDataStruct, date string) bool {
 			panic(err)
 		}
 
-		stmt.Exec(data.Title, data.Url, data.Image, data.Shareurl, data.Thumbnail, data.Gaprefix, data.Id, date)
+		_, errs := stmt.Exec(data.Title, data.Url, data.Image, data.Shareurl, data.Thumbnail, data.Gaprefix, data.Id, date)
+		if errs != nil {
+			panic(err)
+		}
 	}
 	return true
 }
