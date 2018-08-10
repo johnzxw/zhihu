@@ -139,6 +139,13 @@
         });
     }
 
+    function iGetInnerText(testStr) {
+        var resultStr = testStr.replace(/\ +/g, ""); //去掉空格
+        resultStr = testStr.replace(/[ ]/g, "");    //去掉空格
+        resultStr = testStr.replace(/[\r\n]/g, ""); //去掉回车换行
+        return resultStr;
+    }
+
     function timestampToTime(timestamp) {
         var date = new Date(timestamp * 1000);
         Y = date.getFullYear();
@@ -197,25 +204,7 @@
     function addHeaderData(msgs) {
 
         var msg = msgs[window.HeaderDate];
-        var requestData = "";
-        for (var i = 0; i < msg.length; i++) {
-            requestData +=
-                    "            <div class=\"item\">\n" +
-                    "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "','" + msg[i].title + "')\">\n                    " +
-                    "                    <img src='" + msg[i].image + "' alt=''/>\n" +
-                    "                    <span class='title'>" + msg[i].title + "</span>\n" +
-                    "                </a>\n" +
-                    "            </div>\n";
-        }
-        var htmlContent = "<div class=\"post\">\n" +
-                "        <div class=\"post-date\">\n" +
-                "            <span style='display:none' class='dateString'>date</span>\n" +
-                "            <span class=\"post-date-week\">" + window.HeaderWeekName + "</span>\n" +
-                "            <span class=\"post-date-day\">" + window.HeaderDate + "</span>\n" +
-                "        </div>\n" +
-                "        <div class=\"post-body\">\n" + requestData +
-                "        </div>\n" +
-                "    </div>";
+        var htmlContent = formatHtmlData(msg, window.HeaderDate);
         $("#content-header").after(htmlContent);
     }
 
@@ -252,28 +241,33 @@
         for (var ii = 0; ii < datesArray.length; ii++) {
             var queryDate = datesArray[ii];
             var queryData = msg[queryDate];
-            var requestData = "";
-            for (var i = 0; i < queryData.length; i++) {
-                requestData +=
-                        "            <div class=\"item\">\n" +
-                        "                <a href=\"javascript:;\" onclick=\"layeropen('" + queryData[i].share_url + "','" + queryData[i].title + "')\">\n                    " +
-                        "                    <img src='" + queryData[i].image + "' alt=''/>\n" +
-                        "                    <span class='title'>" + queryData[i].title + "</span>\n" +
-                        "                </a>\n" +
-                        "            </div>\n";
-            }
-            var htmlContent = "<div class=\"post\">\n" +
-                    "        <div class=\"post-date\">\n" +
-                    "            <span style='display:none' class='dateString'>date</span>\n" +
-                    "            <span class=\"post-date-week\">" + date2Week(queryDate) + "</span>\n" +
-                    "            <span class=\"post-date-day\">" + queryDate + "</span>\n" +
-                    "        </div>\n" +
-                    "        <div class=\"post-body\">\n" + requestData +
-                    "        </div>\n" +
-                    "    </div>";
+            var htmlContent = formatHtmlData(queryData, queryDate);
             $("#content-bottom").before(htmlContent);
         }
         window.divHeight = $(".item").height();
+    }
+
+    function formatHtmlData(msg, date) {
+        var requestData = "";
+        for (var i = 0; i < msg.length; i++) {
+            requestData +=
+                    "            <div class=\"item\">\n" +
+                    "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "','" + iGetInnerText(msg[i].title) + "')\">\n                    " +
+                    "                    <img src='" + msg[i].image + "' alt=''/>\n" +
+                    "                    <span class='title'>" + msg[i].title + "</span>\n" +
+                    "                </a>\n" +
+                    "            </div>\n";
+        }
+        var htmlContent = "<div class=\"post\">\n" +
+                "        <div class=\"post-date\">\n" +
+                "            <span style='display:none' class='dateString'>date</span>\n" +
+                "            <span class=\"post-date-week\">" + date2Week(date) + "</span>\n" +
+                "            <span class=\"post-date-day\">" + date + "</span>\n" +
+                "        </div>\n" +
+                "        <div class=\"post-body\">\n" + requestData +
+                "        </div>\n" +
+                "    </div>";
+        return htmlContent;
     }
 </script>
 </body>
