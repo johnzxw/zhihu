@@ -150,7 +150,18 @@ func main() {
 func DefaultIndex(c echo.Context) error {
 	date := c.FormValue("date")
 	if isPost(c.Request().Method) && len(date) > 0 {
-		return c.JSON(http.StatusOK, getDataByDate(date))
+		var resultArray []interface{}
+		errs := json.Unmarshal([]byte(date), &resultArray)
+		if errs != nil {
+			fmt.Println("date json 解析失败！ url：")
+		}
+		ReturnData := map[string][]ContentDataStruct{}
+
+		for _, val := range resultArray {
+			date := val.(string)
+			ReturnData[date] = getDataByDate(date)
+		}
+		return c.JSON(http.StatusOK, ReturnData)
 	}
 	return c.Render(http.StatusOK, "index.html", map[string]string{})
 }

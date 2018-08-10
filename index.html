@@ -2,9 +2,11 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="renderer" content="webkit"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="x-dns-prefetch-control" content="on">
     <link rel="dns-prefetch" href="//zhihu.loading.pub"/>
     <link rel="dns-prefetch" href="//news-at.zhihu.com"/>
     <link rel="dns-prefetch" href="//daily.zhihu.com"/>
@@ -76,7 +78,9 @@
         var scrollHeight = $(document).height();
         var windowHeight = $(this).height();
         if (scrollTop + windowHeight >= scrollHeight - (window.divHeight * 3)) {
-            appendData(getPrefixDayDate());
+            var dateStr = [getPrefixDayDate()];
+            var dateStr = JSON.stringify(dateStr);
+            appendData(dateStr);
         }
     });
 
@@ -99,7 +103,7 @@
 
                 window.HeaderDate = dateStr;
                 window.HeaderWeekName = window.WeekName[dateFor.getDay()];
-                appendDataToHeader(window.HeaderDate);
+                appendDataToHeader();
                 if (!isHeadered()) {
                     setTimeout("$('html,body').animate({scrollTop: '0px'}, 800)", 500);
                 }
@@ -109,12 +113,12 @@
 
     window.onload = function () {
         //load 5day data
-        appendData(window.QueryDate);
+        var arr = [window.QueryDate];
         for (var i = 0; i < 4; i++) {
-            appendData(getPrefixDayDate());
+            arr.push(getPrefixDayDate());
         }
-        NProgress.done();
-        window.divHeight = $(".item").height();
+        var dateStr = JSON.stringify(arr);
+        appendData(dateStr);
     };
 
     function isHeadered() {
@@ -152,9 +156,11 @@
 
     }
 
-    function timestampToWeek(timestamp) {
-        var date = new Date(timestamp * 1000);
-        return window.WeekName[date.getDay()]
+    function date2Week(dateString) {
+        var pattern = /(\d{4})(\d{2})(\d{2})/;
+        var formatedDate = dateString.replace(pattern, '$1-$2-$3');
+        var date = new Date(formatedDate).getDay();
+        return window.WeekName[date];
     }
 
     function getPrefixDayDate() {
@@ -169,89 +175,105 @@
         }
         window.isLoaded = true;
         NProgress.start();
+        var dateStr = [window.HeaderDate];
+        var dateStr = JSON.stringify(dateStr);
         data = {
-            date: window.HeaderDate
+            date: dateStr
         };
         $.ajax({
             type: 'POST',
             url: '/getdata',
             dataType: 'JSON',
-            async: false,
             cache: false,
             data: data,
             success: function (msg) {
-                var requestData = "";
-                for (var i = 0; i < msg.length; i++) {
-                    requestData +=
-                            "            <div class=\"item\">\n" +
-                            "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "','" + msg[i].title + "')\">\n                    " +
-                            "                    <img src='" + msg[i].image + "' alt=''/>\n" +
-                            "                    <span class='title'>" + msg[i].title + "</span>\n" +
-                            "                </a>\n" +
-                            "            </div>\n";
-                }
-                var htmlContent = "<div class=\"post\">\n" +
-                        "        <div class=\"post-date\">\n" +
-                        "            <span style='display:none' class='dateString'>date</span>\n" +
-                        "            <span class=\"post-date-week\">" + window.HeaderWeekName + "</span>\n" +
-                        "            <span class=\"post-date-day\">" + window.HeaderDate + "</span>\n" +
-                        "        </div>\n" +
-                        "        <div class=\"post-body\">\n" + requestData +
-                        "        </div>\n" +
-                        "    </div>";
-                $("#content-header").after(htmlContent);
+                addHeaderData(msg);
             }
         });
         NProgress.done();
         window.isLoaded = false;
     }
 
+    function addHeaderData(msgs) {
+
+        var msg = msgs[window.HeaderDate];
+        var requestData = "";
+        for (var i = 0; i < msg.length; i++) {
+            requestData +=
+                    "            <div class=\"item\">\n" +
+                    "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "','" + msg[i].title + "')\">\n                    " +
+                    "                    <img src='" + msg[i].image + "' alt=''/>\n" +
+                    "                    <span class='title'>" + msg[i].title + "</span>\n" +
+                    "                </a>\n" +
+                    "            </div>\n";
+        }
+        var htmlContent = "<div class=\"post\">\n" +
+                "        <div class=\"post-date\">\n" +
+                "            <span style='display:none' class='dateString'>date</span>\n" +
+                "            <span class=\"post-date-week\">" + window.HeaderWeekName + "</span>\n" +
+                "            <span class=\"post-date-day\">" + window.HeaderDate + "</span>\n" +
+                "        </div>\n" +
+                "        <div class=\"post-body\">\n" + requestData +
+                "        </div>\n" +
+                "    </div>";
+        $("#content-header").after(htmlContent);
+    }
+
     /**
      * load data
      * @returns {string}
      */
-    function appendData() {
+    function appendData(dates) {
         if (window.isLoaded) {
             return "";
         }
         window.isLoaded = true;
         NProgress.start();
         data = {
-            date: window.QueryDate
+            date: dates
         };
         $.ajax({
             type: 'POST',
             url: '/getdata',
             dataType: 'JSON',
-            async: false,
             cache: false,
             data: data,
             success: function (msg) {
-                var requestData = "";
-                for (var i = 0; i < msg.length; i++) {
-                    requestData +=
-                            "            <div class=\"item\">\n" +
-                            "                <a href=\"javascript:;\" onclick=\"layeropen('" + msg[i].share_url + "','" + msg[i].title + "')\">\n                    " +
-                            "                    <img src='" + msg[i].image + "' alt=''/>\n" +
-                            "                    <span class='title'>" + msg[i].title + "</span>\n" +
-                            "                </a>\n" +
-                            "            </div>\n";
-                }
-                var htmlContent = "<div class=\"post\">\n" +
-                        "        <div class=\"post-date\">\n" +
-                        "            <span style='display:none' class='dateString'>date</span>\n" +
-                        "            <span class=\"post-date-week\">" + timestampToWeek(window.QueryStamp) + "</span>\n" +
-                        "            <span class=\"post-date-day\">" + window.QueryDate + "</span>\n" +
-                        "        </div>\n" +
-                        "        <div class=\"post-body\">\n" + requestData +
-                        "        </div>\n" +
-                        "    </div>";
-                $("#content-bottom").before(htmlContent);
+                addData(msg, dates);
             }
         });
 
         NProgress.done();
         window.isLoaded = false;
+    }
+
+    function addData(msg, dates) {
+        var datesArray = JSON.parse(dates);
+        for (var ii = 0; ii < datesArray.length; ii++) {
+            var queryDate = datesArray[ii];
+            var queryData = msg[queryDate];
+            var requestData = "";
+            for (var i = 0; i < queryData.length; i++) {
+                requestData +=
+                        "            <div class=\"item\">\n" +
+                        "                <a href=\"javascript:;\" onclick=\"layeropen('" + queryData[i].share_url + "','" + queryData[i].title + "')\">\n                    " +
+                        "                    <img src='" + queryData[i].image + "' alt=''/>\n" +
+                        "                    <span class='title'>" + queryData[i].title + "</span>\n" +
+                        "                </a>\n" +
+                        "            </div>\n";
+            }
+            var htmlContent = "<div class=\"post\">\n" +
+                    "        <div class=\"post-date\">\n" +
+                    "            <span style='display:none' class='dateString'>date</span>\n" +
+                    "            <span class=\"post-date-week\">" + date2Week(queryDate) + "</span>\n" +
+                    "            <span class=\"post-date-day\">" + queryDate + "</span>\n" +
+                    "        </div>\n" +
+                    "        <div class=\"post-body\">\n" + requestData +
+                    "        </div>\n" +
+                    "    </div>";
+            $("#content-bottom").before(htmlContent);
+        }
+        window.divHeight = $(".item").height();
     }
 </script>
 </body>
