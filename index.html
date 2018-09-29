@@ -78,8 +78,12 @@
         var scrollHeight = $(document).height();
         var windowHeight = $(this).height();
         if (scrollTop + windowHeight >= scrollHeight - (window.divHeight * 3)) {
-            var dateStr = [getPrefixDayDate()];
-            var dateStr = JSON.stringify(dateStr);
+            //load 3 day data
+            var arr = [];
+            for (var i = 0; i < 3; i++) {
+                arr.push(getPrefixDayDate());
+            }
+            var dateStr = JSON.stringify(arr);
             appendData(dateStr);
         }
     });
