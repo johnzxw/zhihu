@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <link rel="dns-prefetch" href="//zhihu.loading.pub"/>
+    <link rel="dns-prefetch" href="//news-at.zhihu.com"/>
+    <link rel="dns-prefetch" href="//daily.zhihu.com"/>
+    <link rel="dns-prefetch" href="//pic1.zhimg.com"/>
+    <link rel="dns-prefetch" href="//pic2.zhimg.com"/>
+    <link rel="dns-prefetch" href="//pic3.zhimg.com"/>
+    <link rel="dns-prefetch" href="//pic4.zhimg.com"/>
+    <meta name="format-detection" content="telephone=no">
+    <meta name="format-detection" content="date=no">
+    <meta name="format-detection" content="address=no">
+    <title>知乎日报-allen</title>
+    <link type="text/css" rel="stylesheet" href="/static/base.css"/>
+    <link type="text/css" rel="stylesheet" href="/static/nprogress.css"/>
+    <meta name="referrer" content="never">
+</head>
+<body>
+<div id="allcontent" style="width: auto;height: auto;">
+
+    <div id="header">
+        <a href="/" title="知乎日报" style="float:left">
+            <img src="/static/zhihu_logo.png" class="main-wrap">
+        </a>
+        <div class="float:right" style="margin-top: 15px;padding-right: 30px;">
+            想看哪一天的：
+            <a href="javascript:;" style="width: 100px;height: auto;margin-right: 0;" @click="renderDate"
+               id="selectDate">{%showDate%}</a>
+        </div>
+    </div>
+
+    <div id="content">
+        <div id="content-header" style="display: none"></div>
+        <div id="content-bottom" style="display: none;"></div>
+        <!--<zhihu-content-->
+        <!--v-for="item in items"-->
+        <!--v-bind:item="item"-->
+        <!--v-bind:key="item.id"-->
+        <!--&gt;</zhihu-content>-->
+
+        <div class="post" v-for="(it,dateTime) in items">
+            <div class="post-date">
+                <span style="display:none" class="dateString">date</span>
+                <span class="post-date-week">{%date2Week(dateTime)%}</span>
+                <span class="post-date-day">{%dateTime%}</span>
+            </div>
+            <div class="post-body">
+                <div class="item" v-for="item in it">
+                    <!--<a v-bind:href="item.share_url"  target='_blank'>-->
+                    <a @click="layeropen(item.share_url,item.title)" href="javascript:;">
+                        <img v-bind:src='item.image' alt="">
+                        <span class="title">{%item.title%}</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<script type="text/javascript" src="/static/jquery.min.js"></script>
+
+<script type="text/javascript" src="/static/nprogress.js"></script>
+<script type="text/javascript" src="/static/vue.js"></script>
+<script type="text/javascript" src="/static/layer.js"></script>
+<script type="text/javascript" src="/static/laydate.js"></script>
+<script type="text/javascript">
+    var Zhihu = new Vue({
+                el: "#allcontent",
+                delimiters: ['{%', '%}'],
+                data: {
+                    showDate: '2018-01-01',
+                    items: {},
+                    WeekName: new Array('星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'),
+                },
+                mounted: function () {
+                    var _this = this;
+                    var QueryStamp = Math.round(new Date().getTime() / 1000) - 86400;
+                    var date = new Date(QueryStamp * 1000);
+                    Y = date.getFullYear();
+                    M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
+                    D = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate());
+                    var dateStr = Y + "" + M + "" + D;
+                    var dateShow = Y + "-" + M + "-" + D;
+                    _this.showDate = dateShow;
+                    var arr = [];
+                    arr.push(dateStr);
+                    dateStr = JSON.stringify(arr);
+                    data = {
+                        date: dateStr
+                    };
+                    $.ajax({
+                        type: 'POST',
+                        url: '/getdata',
+                        dataType: 'JSON',
+                        cache: false,
+                        data: data,
+                        success: function (msg) {
+                            _this.items = msg
+                        }
+                    });
+                },
+                methods: {
+                    layeropen: function (url, title) {
+                        layer.open({
+                            type: 2,
+                            area: ['90%', '90%'],
+                            fixed: false, //不固定
+                            maxmin: true,
+                            title: title,
+                            content: url
+                        });
+                    },
+                    date2Week: function (dateString) {
+                        var pattern = /(\d{4})(\d{2})(\d{2})/;
+                        var formatedDate = dateString.replace(pattern, '$1-$2-$3');
+                        var date = new Date(formatedDate).getDay();
+                        return this.WeekName[date];
+                    },
+                    renderDate: function () {
+                        var _this = this;
+                        laydate.render({
+                            elem: '#selectDate'
+                            , show: true //直接显示
+                            , closeStop: '#selectDate' //这里代表的意思是：点击 selectDate 所在元素阻止关闭事件冒泡。如果不设定，则无法弹出控件
+                            , type: 'date'
+                            , format: 'yyyy-MM-dd'
+                            , trigger: 'click'
+                            , calendar: true
+                            , done: function (value, date, endDate) {
+                                var dateFor = new Date(value);
+                                Y = dateFor.getFullYear();
+                                M = (dateFor.getMonth() + 1 < 10 ? '0' + (dateFor.getMonth() + 1) : dateFor.getMonth() + 1);
+                                D = (dateFor.getDate() < 10 ? '0' + (dateFor.getDate()) : dateFor.getDate());
+                                dateStr = Y + "" + M + "" + D;
+                                var dateShow = Y + "-" + M + "-" + D;
+                                _this.showDate = dateShow;
+                                var dateStr = [dateStr];
+                                var dateStr = JSON.stringify(dateStr);
+                                data = {
+                                    date: dateStr
+                                };
+                                $.ajax({
+                                    type: 'POST',
+                                    url: '/getdata',
+                                    dataType: 'JSON',
+                                    cache: false,
+                                    data: data,
+                                    success: function (msg) {
+                                        _this.items = msg
+                                    }
+                                });
+                                setTimeout("$('html,body').animate({scrollTop: '0px'}, 800)", 500);
+                            }
+                        })
+                    },
+                }
+            })
+    ;
+</script>
+</body>
+</html>
