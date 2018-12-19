@@ -4,18 +4,20 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
-	"github.com/labstack/gommon/log"
-	_ "github.com/mattn/go-sqlite3"
 	"html/template"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+	"github.com/labstack/gommon/log"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
@@ -139,6 +141,7 @@ func main() {
 	//route
 	e.GET("/", DefaultIndex)
 	e.POST("/getdata", DefaultIndex)
+	e.GET("/reset", ResetData)
 
 	e.Server.Addr = listerAddr
 	e.Logger.Fatal(e.Start(listerAddr))
@@ -164,6 +167,40 @@ func DefaultIndex(c echo.Context) error {
 		return c.JSON(http.StatusOK, ReturnData)
 	}
 	return c.Render(http.StatusOK, "index.html", map[string]string{})
+}
+func ResetData(c echo.Context) error {
+	reqDate := c.QueryParam("date")
+	reqNum := c.QueryParam("num")
+	Num, _ := strconv.ParseInt(reqNum, 10, 64)
+	localZone, _ := time.LoadLocation("Local")
+	timeStamp, _ := time.ParseInLocation("2006-01-02", reqDate, localZone)
+	t := timeStamp.Unix()
+	var i int64
+	for i = 0; i <= Num; i++ {
+		date := time.Unix(t+i*86400, 0).Format("20060102")
+
+		deleteDbData(date)
+
+		data := httpGet(apiUrl + date)
+		resultArray := &ApiDataStruct{}
+		errs := json.Unmarshal([]byte(data), resultArray)
+		if errs != nil {
+			fmt.Println("json 解析失败！ url：")
+		}
+		var zhihuData []ContentDataStruct
+
+		zhihuData = resultArray.News
+		//对url进行处理
+		for i := 0; i < len(zhihuData); i++ {
+			zhihuData[i].Thumbnail = strings.Replace(zhihuData[i].Thumbnail, "http:", "", 1)
+			zhihuData[i].Shareurl = strings.Replace(zhihuData[i].Shareurl, "http:", "", 1)
+			zhihuData[i].Image = strings.Replace(zhihuData[i].Image, "http:", "", 1)
+			zhihuData[i].Url = strings.Replace(zhihuData[i].Url, "http:", "", 1)
+		}
+		saveDataToDb(zhihuData, date)
+		time.Sleep(time.Millisecond * 100)
+	}
+	return c.JSON(http.StatusOK, "")
 }
 
 /**
@@ -201,6 +238,14 @@ func getDataByDate(date string) []ContentDataStruct {
 		}
 	}
 	return zhihuData
+}
+
+func deleteDbData(date string) bool {
+	sql := "DELETE FROM " + tableName + " WHERE Date = " + date
+	if _, err := SqlConnect.Exec(sql); err == nil {
+		return true
+	}
+	return false
 }
 
 /**
